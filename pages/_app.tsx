@@ -2,7 +2,7 @@ import "../styles/globals.css";
 import type { AppProps } from "next/app";
 import styled from "styled-components";
 
-const Wrapper = styled.div`
+const Wrapper = styled.main`
   min-height: 100vh;
   width: 100%;
   display: flex;
