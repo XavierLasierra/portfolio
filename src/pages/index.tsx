@@ -1,8 +1,10 @@
-import type { NextPage } from "next";
 import { useEffect, useRef, useState } from "react";
+import type { NextPage } from "next";
 import styled from "styled-components";
+
 import { GolfField } from "../components/golfField/GolfField";
 import { BALL_SIZE } from "../constants/golf";
+
 import { Point } from "../models/distance";
 
 const Wrapper = styled.div`
@@ -23,7 +25,7 @@ const Wrapper = styled.div`
 
 const Home: NextPage = () => {
   const mainTitleRef = useRef(null);
-  const [titlePosition, setTitlePosition] = useState<Point>({ x: 0, y: 0 });
+  const [titlePosition, setTitlePosition] = useState<Point | null>(null);
 
   const getTitleSize = () => {
     if (mainTitleRef?.current === null) return;
@@ -48,12 +50,14 @@ const Home: NextPage = () => {
           <h2 className="main-text">test test set s tet estest</h2>
         </div>
       </Wrapper>
-      <GolfField
-        initialPosition={{
-          x: titlePosition.x,
-          y: titlePosition.y - BALL_SIZE,
-        }}
-      />
+      {titlePosition && (
+        <GolfField
+          initialBallPosition={{
+            x: titlePosition.x,
+            y: titlePosition.y - BALL_SIZE,
+          }}
+        />
+      )}
     </>
   );
 };

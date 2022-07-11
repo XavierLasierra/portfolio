@@ -11,3 +11,18 @@ export const getAngleBetweenTwoPoints = (pointA: Point, pointB: Point) => {
   const y = pointB.y - pointA.y;
   return Math.atan2(y, x);
 };
+
+export const getRandomPoint = (fieldDimensions: {
+  top: number;
+  left: number;
+  bottom: number;
+  right: number;
+}): Point => {
+  const x =
+    Math.random() * (fieldDimensions.right - fieldDimensions.left) +
+    fieldDimensions.left;
+  const y =
+    Math.random() * (fieldDimensions.bottom - fieldDimensions.top) +
+    fieldDimensions.top;
+  return { x, y };
+};

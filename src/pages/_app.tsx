@@ -1,6 +1,7 @@
-import "../styles/globals.css";
 import type { AppProps } from "next/app";
 import styled from "styled-components";
+
+import "../styles/globals.css";
 
 const Wrapper = styled.main`
   min-height: 100vh;

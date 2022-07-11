@@ -1,19 +1,23 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import styled from "styled-components";
-import { BALL_SIZE, MAX_POWER, POWER_MULTIPLIER } from "../../constants/golf";
+
 import { useClickEvents } from "../../hooks/useClickEvents";
+
 import { Point } from "../../models/distance";
+import { BALL_SIZE, MAX_POWER, POWER_MULTIPLIER } from "../../constants/golf";
 import {
   getAngleBetweenTwoPoints,
   getDistanceBetweenTwoPoints,
 } from "../../utils/distance";
 
 interface GolfBallProps {
-  fieldSize: {
-    width: number;
-    height: number;
+  fieldDimensions: {
+    top: number;
+    left: number;
+    right: number;
+    bottom: number;
   };
-  point?: Point;
+  position?: Point;
   goalPosition: Point;
 }
 
@@ -54,11 +58,15 @@ const Wrapper = styled.button`
   `}
 `;
 
-const GolfBall = ({ fieldSize, point, goalPosition }: GolfBallProps) => {
+const GolfBall = ({
+  fieldDimensions,
+  position,
+  goalPosition,
+}: GolfBallProps) => {
   const ballRef = useRef(null);
   const [ballState, setBallState] = useState<BallState>({
-    x: (point?.x || 0) + BALL_SIZE / 2,
-    y: (point?.y || 0) + BALL_SIZE / 2,
+    x: (position?.x || 0) + BALL_SIZE / 2,
+    y: (position?.y || 0) + BALL_SIZE / 2,
     isMoving: false,
     isIn: false,
   });
@@ -66,14 +74,14 @@ const GolfBall = ({ fieldSize, point, goalPosition }: GolfBallProps) => {
   const { isDragging, endPosition } = useClickEvents(ballRef);
 
   const checkCollision = (point: Point): ("horizontal" | "vertical")[] => {
-    if (fieldSize === undefined) return [];
+    if (fieldDimensions === undefined) return [];
 
-    const { width, height } = fieldSize;
+    const { top, bottom, left, right } = fieldDimensions;
     const collisions: ("horizontal" | "vertical")[] = [];
-    if (point.x - BALL_SIZE / 2 <= 0) collisions.push("horizontal");
-    if (point.x + BALL_SIZE / 2 >= width) collisions.push("horizontal");
-    if (point.y - BALL_SIZE / 2 <= 0) collisions.push("vertical");
-    if (point.y + BALL_SIZE / 2 >= height) collisions.push("vertical");
+    if (point.x - BALL_SIZE / 2 <= left) collisions.push("horizontal");
+    if (point.x + BALL_SIZE / 2 >= right) collisions.push("horizontal");
+    if (point.y - BALL_SIZE / 2 <= top) collisions.push("vertical");
+    if (point.y + BALL_SIZE / 2 >= bottom) collisions.push("vertical");
 
     return collisions;
   };
@@ -106,12 +114,12 @@ const GolfBall = ({ fieldSize, point, goalPosition }: GolfBallProps) => {
 
   useEffect(() => {
     setBallState({
-      x: (point?.x || 0) + BALL_SIZE / 2,
-      y: (point?.y || 0) + BALL_SIZE / 2,
+      x: (position?.x || 0) + BALL_SIZE / 2,
+      y: (position?.y || 0) + BALL_SIZE / 2,
       isMoving: false,
       isIn: false,
     });
-  }, [point]);
+  }, [position]);
 
   useEffect(() => {
     if (!isDragging && endPosition && !ballState.isMoving) {

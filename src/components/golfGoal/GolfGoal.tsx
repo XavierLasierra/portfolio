@@ -4,7 +4,7 @@ import { BALL_SIZE } from "../../constants/golf";
 import { Point } from "../../models/distance";
 
 interface GolfGoalProps {
-  point: Point;
+  position: Point;
 }
 
 const Wrapper = styled.div`
@@ -30,9 +30,9 @@ const Wrapper = styled.div`
   }
 `;
 
-const GolfGoal = ({ point }: GolfGoalProps) => {
+const GolfGoal = ({ position }: GolfGoalProps) => {
   return (
-    <Wrapper {...point}>
+    <Wrapper x={position.x} y={position.y}>
       <div className="bottom"></div>
     </Wrapper>
   );
