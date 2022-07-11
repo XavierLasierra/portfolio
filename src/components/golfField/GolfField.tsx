@@ -20,6 +20,7 @@ const Wrapper = styled.section`
   flex: 1;
   position: relative;
   overflow: hidden;
+  background-color: #0a0;
 `;
 
 interface BallState {
