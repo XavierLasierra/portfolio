@@ -10,7 +10,7 @@ interface GolfFieldProps {
 
 const Wrapper = styled.section`
   flex: 1;
-  background-color: green;
+  background-color: #198e6b;
   position: relative;
   overflow: hidden;
 `;

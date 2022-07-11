@@ -43,9 +43,9 @@ const Home: NextPage = () => {
     <>
       <Wrapper>
         <div ref={mainTitleRef} className="main-title">
-          <span className="main-text">Hi, I&lsquo;m</span>
-          <h1 className="main-text">Xavier Lasierra Pérez</h1>
-          <h2 className="main-text">Full Stack Web Developer</h2>
+          <span className="main-text">Test</span>
+          <h1 className="main-text">Test test test</h1>
+          <h2 className="main-text">test test set s tet estest</h2>
         </div>
       </Wrapper>
       <GolfField
