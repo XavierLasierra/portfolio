@@ -1,29 +1,15 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef } from "react";
 import styled from "styled-components";
 
-import { useClickEvents } from "../../hooks/useClickEvents";
+import { useEndClickEventPosition } from "../../hooks/useEndClickEventPosition";
 
 import { Point } from "../../models/distance";
-import { BALL_SIZE, MAX_POWER, POWER_MULTIPLIER } from "../../constants/golf";
-import {
-  getAngleBetweenTwoPoints,
-  getDistanceBetweenTwoPoints,
-} from "../../utils/distance";
+import { BALL_SIZE } from "../../constants/golf";
 
 interface GolfBallProps {
-  fieldDimensions: {
-    top: number;
-    left: number;
-    right: number;
-    bottom: number;
-  };
-  position?: Point;
-  goalPosition: Point;
-}
-
-interface BallState extends Point {
-  isMoving: boolean;
+  position: Point;
   isIn: boolean;
+  onBallReleased: (endPosition: Point) => void;
 }
 
 const Wrapper = styled.button`
@@ -51,168 +37,32 @@ const Wrapper = styled.button`
     z-index: 1;
   }
 
-  ${(props: BallState) =>
+  ${(props: { isIn: boolean }) =>
     props.isIn &&
     `
     transform: scale(0);
   `}
 `;
 
-const GolfBall = ({
-  fieldDimensions,
-  position,
-  goalPosition,
-}: GolfBallProps) => {
+const GolfBall = ({ position, isIn, onBallReleased }: GolfBallProps) => {
   const ballRef = useRef(null);
-  const [ballState, setBallState] = useState<BallState>({
-    x: (position?.x || 0) + BALL_SIZE / 2,
-    y: (position?.y || 0) + BALL_SIZE / 2,
-    isMoving: false,
-    isIn: false,
-  });
-
-  const { isDragging, endPosition } = useClickEvents(ballRef);
-
-  const checkCollision = (point: Point): ("horizontal" | "vertical")[] => {
-    if (fieldDimensions === undefined) return [];
-
-    const { top, bottom, left, right } = fieldDimensions;
-    const collisions: ("horizontal" | "vertical")[] = [];
-    if (point.x - BALL_SIZE / 2 <= left) collisions.push("horizontal");
-    if (point.x + BALL_SIZE / 2 >= right) collisions.push("horizontal");
-    if (point.y - BALL_SIZE / 2 <= top) collisions.push("vertical");
-    if (point.y + BALL_SIZE / 2 >= bottom) collisions.push("vertical");
-
-    return collisions;
-  };
-
-  const onBallIn = () => {
-    setBallState({
-      ...goalPosition,
-      isMoving: false,
-      isIn: true,
-    });
-  };
-
-  const checkGoal = (
-    point: Point,
-    increment: number
-  ): "collision" | "in" | "out" => {
-    const { x, y } = point;
-    const { x: goalX, y: goalY } = goalPosition;
-    const goalDistance = getDistanceBetweenTwoPoints(
-      { x: goalX, y: goalY },
-      { x, y }
-    );
-    const goalRadius = BALL_SIZE / 2;
-    if (goalDistance < goalRadius) {
-      if (increment < MAX_POWER / 2) return "in";
-      return "collision";
-    }
-    return "out";
-  };
+  const { endPosition, resetState } = useEndClickEventPosition(ballRef);
 
   useEffect(() => {
-    setBallState({
-      x: (position?.x || 0) + BALL_SIZE / 2,
-      y: (position?.y || 0) + BALL_SIZE / 2,
-      isMoving: false,
-      isIn: false,
-    });
-  }, [position]);
-
-  useEffect(() => {
-    if (!isDragging && endPosition && !ballState.isMoving) {
-      const startMovement = () => {
-        const ballPoint: Point = { x: ballState.x, y: ballState.y };
-        const distance = getDistanceBetweenTwoPoints(ballPoint, endPosition);
-        const angle = getAngleBetweenTwoPoints(ballPoint, endPosition);
-
-        const power = distance * POWER_MULTIPLIER;
-        const frictionDecrementX =
-          (Math.abs(0.02 * Math.cos(angle)) / 2) * Math.PI;
-        const frictionDecrementY =
-          (Math.abs(0.02 * Math.sin(angle)) / 2) * Math.PI;
-        let incrementX =
-          (power > MAX_POWER ? MAX_POWER : power) * Math.cos(angle);
-        let incrementY =
-          (power > MAX_POWER ? MAX_POWER : power) * Math.sin(angle);
-
-        const moveToNextPoint = (previousPoint: Point) => {
-          requestAnimationFrame(async () => {
-            const newX = previousPoint.x + incrementX;
-            const newY = previousPoint.y + incrementY;
-
-            const newPoint: Point = { x: newX, y: newY };
-            const collisions = checkCollision({ x: newX, y: newY });
-            if (collisions.length > 0) {
-              collisions.forEach((collision) => {
-                if (collision === "horizontal") {
-                  incrementX = -incrementX;
-                  newPoint.x += incrementX * 2;
-                } else if (collision === "vertical") {
-                  incrementY = -incrementY;
-                  newPoint.y += incrementY * 2;
-                }
-              });
-            }
-
-            let stop = true;
-
-            if (Math.abs(incrementX) > frictionDecrementX) {
-              stop = false;
-              incrementX =
-                incrementX > 0
-                  ? incrementX - frictionDecrementX
-                  : incrementX + frictionDecrementX;
-            }
-            if (Math.abs(incrementY) > frictionDecrementY) {
-              stop = false;
-              incrementY =
-                incrementY > 0
-                  ? incrementY - frictionDecrementY
-                  : incrementY + frictionDecrementY;
-            }
-
-            const isGoal = checkGoal(
-              newPoint,
-              Math.abs(incrementX) + Math.abs(incrementY)
-            );
-            if (isGoal === "collision") {
-              console.log("out");
-            }
-            if (isGoal === "in") {
-              return onBallIn();
-            }
-
-            setBallState({
-              ...newPoint,
-              isMoving: !stop,
-              isIn: false,
-            });
-
-            if (!stop) {
-              moveToNextPoint(newPoint);
-            }
-          });
-        };
-
-        moveToNextPoint(ballState);
-      };
-
-      startMovement();
+    if (endPosition) {
+      onBallReleased(endPosition);
+      resetState();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isDragging, endPosition]);
+  }, [endPosition, resetState]);
 
   return (
     <Wrapper
       ref={ballRef}
       style={{
-        left: ballState.x - BALL_SIZE / 2,
-        top: ballState.y - BALL_SIZE / 2,
+        left: position.x - BALL_SIZE / 2,
+        top: position.y - BALL_SIZE / 2,
       }}
-      {...ballState}
+      isIn={isIn}
     >
       <div className="ball" />
       <div className="ball-shadow"></div>

@@ -33,7 +33,7 @@ const Wrapper = styled.div`
 const GolfGoal = ({ position }: GolfGoalProps) => {
   return (
     <Wrapper x={position.x} y={position.y}>
-      <div className="bottom"></div>
+      <div className="bottom" />
     </Wrapper>
   );
 };
